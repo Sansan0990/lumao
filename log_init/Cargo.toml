@@ -1,0 +1,8 @@
+[package]
+name = "log_init"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+log = { workspace = true }
+log4rs = { workspace = true }

@@ -1,0 +1,16 @@
+[package]
+name = "statistics"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+eframe = {workspace = true ,features = ["default"]}
+egui_extras = {workspace = true,features = ["all_loaders"]}
+image = {workspace = true,features = ["default-formats"]}
+chrono = {workspace = true}
+tokio = {workspace = true}
+flume = {workspace = true}
+log = {workspace = true}
+log_init = {path = "../log_init"}
