@@ -6,11 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+egui = {workspace = true}
 eframe = {workspace = true ,features = ["default"]}
 egui_extras = {workspace = true,features = ["all_loaders"]}
+egui-data-table = {workspace = true}
 image = {workspace = true,features = ["default-formats"]}
 chrono = {workspace = true}
 tokio = {workspace = true}
 flume = {workspace = true}
 log = {workspace = true}
 log_init = {path = "../log_init"}
+names = {version = "0.14.0"}
+fastrand = {version = "2.1.0"}

@@ -8,8 +8,10 @@ members = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-eframe = {version = "0" ,features = ["default"]}
-egui_extras ={version = "0.28",features = ["all_loaders"]}
+egui = {version = "0.27"}
+eframe = {version = "0.27" ,features = ["default"]}
+egui_extras ={version = "0.27",features = ["all_loaders"]}
+egui-data-table = {version = "0.2.2"}
 image = {version = "0"}
 chrono = {version = "0.4"}
 tokio = {version = "1.38", features = ["rt-multi-thread", "time"] }

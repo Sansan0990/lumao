@@ -1,6 +1,7 @@
 mod lumao_app;
 mod pay_tab;
 mod message;
+mod mail;
 
 use std::path;
 use eframe::egui;
@@ -9,9 +10,8 @@ use tokio::runtime::Runtime;
 use flume;
 use crate::lumao_app::LumaoApp;
 use crate::message::Message;
-use crate::pay_tab::Mail;
 
-fn main() ->eframe::Result{
+fn main() ->eframe::Result<()>{
     if let Err(_) =  log_init::init_log_file_stdout(path::Path::new("log"), LevelFilter::Info, LevelFilter::Info){
         println!("Unable to create log.")
     }
@@ -27,7 +27,7 @@ fn main() ->eframe::Result{
        runtime.block_on(async {
            loop {
                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-               res_tx.send(Message::MailRes(Mail::new())).unwrap()
+               res_tx.send(Message::MailRes(mail::Mail::new())).unwrap()
            }
        })
     });
@@ -35,7 +35,7 @@ fn main() ->eframe::Result{
         "lumao statistic",
         options,
         Box::new(|cc|{
-            Ok(Box::new(LumaoApp::new(res_rx,req_tx)))
+            Box::new(LumaoApp::new(res_rx,req_tx))
         })
     )
 }
