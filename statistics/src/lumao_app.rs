@@ -127,7 +127,7 @@ impl LumaoApp {
         if let Some(m) = op{
             match m {
                 Message::MailRes(v) => {
-                    self.mail = v
+                    self.mail_table = v.data.iter().map(|x|x.clone()).collect();
                 }
                 Message::TGRes(v) => {
                     self.tg = v
@@ -232,27 +232,6 @@ impl LumaoApp {
         });
     }
     fn show_mail_table(&mut self,ui:&mut egui::Ui) {
-        self.mail_table = {
-            let mut rng = fastrand::Rng::new();
-                let mut name_gen = names::Generator::with_naming(names::Name::Numbered);
-
-                repeat_with(move || {
-                    MailInfo {
-                        selected:false,
-                        name: name_gen.next().unwrap(),
-                        order_number:"fdjklafjd".to_string(),
-                        billing_date:Utc::now(),
-                        expire_date:Utc::now(),
-                        fee: rng.u32(4..31),
-                        fee_label:pay_tab::FeeLabel::RMB,
-                        office_url:"www.google.com".to_owned(),
-                        status:pay_tab::OrderStatus::Expired
-                    }
-
-                })
-            }
-            .take(100000)
-            .collect();
         fn is_send<T: Send>(_: &T) {}
         fn is_sync<T: Sync>(_: &T) {}
 
