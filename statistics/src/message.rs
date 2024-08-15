@@ -1,10 +1,9 @@
-use crate::mail;
-use crate::pay_tab::{DC, Ip, TG, X};
+use crate::pay_page::{DC, Ip, Mail, TG, X};
 
 #[derive(Clone, Debug)]
 pub enum Message{
     MailReq,
-    MailRes(mail::Mail),
+    MailRes(Mail),
     TGReq,
     TGRes(TG),
     DCReq,

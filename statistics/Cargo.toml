@@ -14,6 +14,7 @@ image = {workspace = true,features = ["default-formats"]}
 chrono = {workspace = true}
 tokio = {workspace = true}
 flume = {workspace = true}
+strum = {workspace = true}
 log = {workspace = true}
 log_init = {path = "../log_init"}
 names = {version = "0.14.0"}

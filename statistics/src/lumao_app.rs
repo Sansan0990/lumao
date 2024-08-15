@@ -1,14 +1,11 @@
 use std::env;
-use std::iter::repeat_with;
 use std::time::Duration;
-use chrono::Utc;
 use eframe::egui::{Context, include_image, Widget};
 use eframe::{egui, Frame};
 use egui_extras::{Column, TableBuilder};
 use flume::TryRecvError;
 use crate::message::Message;
-use crate::{mail, pay_tab};
-use crate::mail::MailInfo;
+use crate::pay_tab;
 
 #[derive(PartialEq)]
 pub enum LeftNavigation{
@@ -44,9 +41,7 @@ pub struct LumaoApp{
     left_navigation: LeftNavigation,
     pay_navigation: PayNavigation,
     // data
-    mail:mail::Mail,
-    mail_table:egui_data_table::DataTable<mail::MailInfo>,
-    mail_viewer:mail::Viewer,
+    mail:pay_tab::Mail,
     tg:pay_tab::TG,
     dc:pay_tab::DC,
     x:pay_tab::X,
@@ -63,9 +58,7 @@ impl LumaoApp {
             req_tx,
             left_navigation:LeftNavigation::Pay,
             pay_navigation:PayNavigation::Mail,
-            mail:mail::Mail::new(),
-            mail_table:egui_data_table::DataTable::new(),
-            mail_viewer:mail::Viewer{select_all:false,row_protection:false,search_text:String::new(),hotkeys:Vec::new()},
+            mail:pay_tab::Mail::new(),
             tg:pay_tab::TG::new(),
             dc:pay_tab::DC::new(),
             x:pay_tab::X::new(),
@@ -98,7 +91,6 @@ impl LumaoApp {
     fn page_pay(&mut self, ui: &mut egui::Ui) {
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
-                // 检查是否有新输入
                 self.reset_data_from_res(self.try_receive_data());
                 ui.selectable_value(&mut self.pay_navigation, PayNavigation::Mail, "Mail");
                 ui.selectable_value(&mut self.pay_navigation, PayNavigation::TG, "TG");
@@ -121,13 +113,14 @@ impl LumaoApp {
                    PayNavigation::Browser => {}
                }
             });
+            ui.separator()
         });
     }
     fn reset_data_from_res(&mut self,op:Option<Message>){
         if let Some(m) = op{
             match m {
                 Message::MailRes(v) => {
-                    self.mail_table = v.data.iter().map(|x|x.clone()).collect();
+                    self.mail = v
                 }
                 Message::TGRes(v) => {
                     self.tg = v
@@ -171,10 +164,8 @@ impl LumaoApp {
             ui.text_edit_singleline(&mut self.mail_ui_ctr.search_str);
             ui.button("Search")
             //ui.add(egui::ImageButton::new(include_image!("../../statistics/resource/add.png")));
-        });
-        ui.separator();
-        self.show_mail_table(ui)
 
+        });
     }
     fn try_receive_data(&self)->Option<Message>{
         return match self.res_rx.try_recv() {
@@ -210,7 +201,7 @@ impl LumaoApp {
         egui::SidePanel::right("right_panel")
             .resizable(true)
             .default_width(150.0)
-            .width_range(80.0..=200.0)
+            .width_range(100.0..)
             .show_inside(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.label("right content")
@@ -219,7 +210,7 @@ impl LumaoApp {
         egui::TopBottomPanel::bottom("bottom panel")
             .resizable(true)
             .default_height(100.0)
-            .height_range(50.0..=200.0)
+            .height_range(50.0..)
             .show_inside(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui,|ui| {
                     ui.label("status content")
@@ -230,74 +221,6 @@ impl LumaoApp {
                 self.center_ui(ui)
             })
         });
-    }
-    fn show_mail_table(&mut self,ui:&mut egui::Ui) {
-        fn is_send<T: Send>(_: &T) {}
-        fn is_sync<T: Sync>(_: &T) {}
-
-        is_send(&self.mail_table);
-        is_sync(&self.mail_viewer);
-
-        ui.add(egui_data_table::Renderer::new(
-            &mut self.mail_table,
-            &mut self.mail_viewer,
-        ));
-
-        //egui::Frame::default()
-        //    .show(ui, |ui| {
-        //        ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-        //        egui_extras::TableBuilder::new(ui)
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .column(Column::auto())
-        //            .header(20.0, |mut header| {
-        //                header.col(|ui| {
-        //                    ui.strong("selected");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("name");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("order number");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("billing date");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("expired date");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("fee");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("fee label");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("office link");
-        //                });
-        //                header.col(|ui| {
-        //                    ui.strong("status");
-        //                });
-        //            }).body(|mut body| {
-        //            body.row(20.0, |mut row| {
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //                row.col(|ui| {});
-        //            })
-        //        })
-        //    });
     }
 }
 
@@ -311,4 +234,3 @@ impl eframe::App for LumaoApp {
         ctx.request_repaint_after(Duration::from_millis(100))
     }
 }
-
