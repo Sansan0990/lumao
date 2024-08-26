@@ -3,7 +3,7 @@ use chrono::{Utc};
 use eframe::egui::Context;
 
 #[derive(PartialEq,Clone,Debug)]
-struct IpInfo{
+pub struct IpInfo{
     name:String,
     order_number:String,
     billing_date:chrono::DateTime<Utc>,
@@ -14,7 +14,7 @@ struct IpInfo{
 }
 #[derive(PartialEq, Clone, Debug)]
 pub struct Ip{
-    data:Vec<IpInfo>
+    pub data:Vec<IpInfo>
 }
 impl Default for Ip{
     fn default() -> Self {
@@ -32,5 +32,8 @@ impl Ip{
     }
     pub fn show(&mut self,ctx:&Context){
 
+    }
+    pub fn processing_data_res(&mut self,data:Vec<IpInfo>){
+        self.data = data
     }
 }

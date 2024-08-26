@@ -3,7 +3,7 @@ use chrono::{Utc};
 use eframe::egui::Context;
 
 #[derive(PartialEq,Clone,Debug)]
-struct TGInfo{
+pub struct TGInfo{
     name:String,
     order_number:String,
     billing_date:chrono::DateTime<Utc>,
@@ -14,7 +14,7 @@ struct TGInfo{
 }
 #[derive(PartialEq, Clone, Debug)]
 pub struct TG{
-    data:Vec<TGInfo>
+    pub data:Vec<TGInfo>
 }
 impl Default for TG{
     fn default() -> Self {
@@ -32,5 +32,8 @@ impl TG{
     }
     pub fn show(&mut self,ctx:&Context){
 
+    }
+    pub fn processing_data_res(&mut self,data:Vec<TGInfo>){
+        self.data = data
     }
 }

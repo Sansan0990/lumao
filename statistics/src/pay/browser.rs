@@ -3,7 +3,7 @@ use chrono::{Utc};
 use eframe::egui;
 
 #[derive(PartialEq,Clone)]
-struct BrowserInfo{
+pub struct BrowserInfo{
     name:String,
     order_number:String,
     billing_date:chrono::DateTime<Utc>,
@@ -33,5 +33,8 @@ impl Browser{
     }
     pub fn show(&mut self,ctx:&egui::Context){
 
+    }
+    pub fn processing_data_res(&mut self,data:Vec<BrowserInfo>){
+        self.data = data
     }
 }

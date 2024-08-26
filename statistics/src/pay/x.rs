@@ -1,9 +1,10 @@
 use super::unit::FeeLabel;
 use chrono::{Utc};
 use eframe::egui::Context;
+use crate::pay::telegram::TGInfo;
 
 #[derive(PartialEq,Clone,Debug)]
-struct XInfo{
+pub struct XInfo{
     name:String,
     order_number:String,
     billing_date:chrono::DateTime<Utc>,
@@ -14,7 +15,7 @@ struct XInfo{
 }
 #[derive(PartialEq, Clone, Debug)]
 pub struct X{
-    data:Vec<XInfo>
+    pub data:Vec<XInfo>
 }
 impl Default for X{
     fn default() -> Self {
@@ -33,4 +34,6 @@ impl X{
     pub fn show(&mut self,ctx:&Context){
 
     }
-}
+    pub fn processing_data_res(&mut self,data:Vec<XInfo>){
+        self.data = data
+    }}

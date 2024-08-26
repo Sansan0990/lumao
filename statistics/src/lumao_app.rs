@@ -1,26 +1,21 @@
+
 use std::env;
 use std::time::Duration;
-use eframe::egui::{Context, include_image, Widget};
+use eframe::egui::{Align, Context, global_dark_light_mode_switch,  Layout, Ui, Widget};
 use eframe::{egui, Frame};
 use egui_extras::{Column, TableBuilder};
 use flume::TryRecvError;
+use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 use crate::message::Message;
-use crate::pay_tab;
+use crate::pay_page::PayPage;
+use crate::receive_page::ReceivePage;
 
-#[derive(PartialEq)]
-pub enum LeftNavigation{
+#[derive(PartialEq,EnumIter,AsRefStr)]
+pub enum MainNavigation{
     Pay,
     Receive
 }
-#[derive(PartialEq)]
-pub enum PayNavigation{
-    Mail,
-    TG,
-    DC,
-    X,
-    IP,
-    Browser
-}
+
 
 pub struct MailUiCtr{
     select_all:bool,
@@ -38,15 +33,9 @@ impl MailUiCtr {
 pub struct LumaoApp{
     res_rx:flume::Receiver<Message>,
     req_tx:flume::Sender<Message>,
-    left_navigation: LeftNavigation,
-    pay_navigation: PayNavigation,
-    // data
-    mail:pay_tab::Mail,
-    tg:pay_tab::TG,
-    dc:pay_tab::DC,
-    x:pay_tab::X,
-    ip:pay_tab::Ip,
-    browser:pay_tab::Browser,
+    main_navigation: MainNavigation,
+    pay_page: PayPage,
+    receive_page:ReceivePage,
     // ui state
     mail_ui_ctr:MailUiCtr
 }
@@ -56,88 +45,44 @@ impl LumaoApp {
         let mut out = Self{
             res_rx,
             req_tx,
-            left_navigation:LeftNavigation::Pay,
-            pay_navigation:PayNavigation::Mail,
-            mail:pay_tab::Mail::new(),
-            tg:pay_tab::TG::new(),
-            dc:pay_tab::DC::new(),
-            x:pay_tab::X::new(),
-            ip:pay_tab::Ip::new(),
-            browser:pay_tab::Browser::new(),
+            main_navigation:MainNavigation::Pay,
+            pay_page:PayPage::default(),
+            receive_page:ReceivePage::default(),
             mail_ui_ctr:MailUiCtr::new()
         };
         out
     }
-    fn left_ui(&mut self, ui: &mut egui::Ui) {
-        ui.vertical_centered_justified(|ui| {
-            if ui.selectable_value(&mut self.left_navigation,LeftNavigation::Pay,"Pay").clicked() {
-                self.left_navigation = LeftNavigation::Pay
-            }
-            if ui.selectable_value(&mut self.left_navigation,LeftNavigation::Receive,"Receive").clicked() {
-                self.left_navigation = LeftNavigation::Receive
-            }
-        });
-    }
-    fn center_ui(&mut self, ui: &mut egui::Ui) {
-        match self.left_navigation {
-            LeftNavigation::Pay => {
-                self.page_pay(ui)
-            }
-            LeftNavigation::Receive => {
-                self.page_receive(ui)
-            }
-        }
-    }
-    fn page_pay(&mut self, ui: &mut egui::Ui) {
-        ui.vertical(|ui| {
-            ui.horizontal(|ui| {
-                self.reset_data_from_res(self.try_receive_data());
-                ui.selectable_value(&mut self.pay_navigation, PayNavigation::Mail, "Mail");
-                ui.selectable_value(&mut self.pay_navigation, PayNavigation::TG, "TG");
-                ui.selectable_value(&mut self.pay_navigation, PayNavigation::DC, "DC");
-                ui.selectable_value(&mut self.pay_navigation, PayNavigation::X, "X");
-                ui.selectable_value(&mut self.pay_navigation, PayNavigation::IP, "Ip");
-                ui.selectable_value(&mut self.pay_navigation, PayNavigation::Browser, "Browser");
+    fn show_top_bar(&mut self,ui: &mut Ui){
+        ui.horizontal(|ui|{
+           ui.menu_button("file",|ui|{
+           }) ;
+            ui.menu_button("help",|ui|{
 
             });
             ui.separator();
-            ui.vertical(|ui|{
-               match self.pay_navigation {
-                   PayNavigation::Mail => {
-                       self.show_mail_page(ui)
-                   }
-                   PayNavigation::TG => {}
-                   PayNavigation::DC => {}
-                   PayNavigation::X => {}
-                   PayNavigation::IP => {}
-                   PayNavigation::Browser => {}
-               }
-            });
-            ui.separator()
+            for page in MainNavigation::iter(){
+                if ui.selectable_label(self.main_navigation == page,page.as_ref()).clicked(){
+                    self.main_navigation = page
+                }
+            }
+            ui.with_layout(Layout::right_to_left(Align::Center),|ui|{
+                global_dark_light_mode_switch(ui)
+            })
+        });
+
+    }
+    fn left_ui(&mut self, ui: &mut egui::Ui) {
+        ui.vertical_centered_justified(|ui| {
+            if ui.selectable_value(&mut self.main_navigation,MainNavigation::Pay,"Pay").clicked() {
+                self.main_navigation = MainNavigation::Pay
+            }
+            if ui.selectable_value(&mut self.main_navigation,MainNavigation::Receive,"Receive").clicked() {
+                self.main_navigation = MainNavigation::Receive
+            }
         });
     }
-    fn reset_data_from_res(&mut self,op:Option<Message>){
-        if let Some(m) = op{
-            match m {
-                Message::MailRes(v) => {
-                    self.mail = v
-                }
-                Message::TGRes(v) => {
-                    self.tg = v
-                }
-                Message::DCRes(v) => {
-                    self.dc =v
-                }
-                Message::XRes(v) => {
-                    self.x= v
-                }
-                Message::IPRes(v) => {
-                    self.ip = v
-                }
-                _ =>{}
-            }
-        }
-    }
+
+
     fn show_mail_page(&mut self,ui:&mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.checkbox(&mut self.mail_ui_ctr.select_all, "Select all");
@@ -188,49 +133,46 @@ impl LumaoApp {
     fn page_receive(&mut self, ui: &mut egui::Ui) {
         ui.label("receive");
     }
-    fn main_ui(&mut self, ui: &mut egui::Ui) {
-        egui::SidePanel::left("left_panel")
-            .resizable(true)
-            .default_width(150.0)
-            .width_range(80.0..=200.0)
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    self.left_ui(ui)
-                })
-            });
-        egui::SidePanel::right("right_panel")
-            .resizable(true)
-            .default_width(150.0)
-            .width_range(100.0..)
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    ui.label("right content")
-                })
-            });
-        egui::TopBottomPanel::bottom("bottom panel")
-            .resizable(true)
-            .default_height(100.0)
-            .height_range(50.0..)
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui,|ui| {
-                    ui.label("status content")
-                });
-            });
-        egui::CentralPanel::default().show_inside(ui,|ui|{
-            egui::ScrollArea::vertical().show(ui,|ui| {
-                self.center_ui(ui)
-            })
+    fn main_ui(&mut self, ctx: &Context, frame: &mut Frame) {
+        egui::TopBottomPanel::top("top_bar").show(ctx,|ui|{
+           self.show_top_bar(ui)
         });
+        match self.main_navigation{
+            MainNavigation::Pay=>{
+                self.pay_page.show(ctx)
+            },
+            MainNavigation::Receive=>{
+                self.receive_page.show(ctx)
+            }
+        }
+    }
+    fn processing_data_res(&mut self){
+        if let Some(o) = self.try_receive_data(){
+            match o {
+                Message::MailRes(v) => {
+                    self.pay_page.processing_mail_data_res(v.data)
+                }
+                Message::DCRes(v) => {
+                    self.pay_page.processing_dc_data_res(v.data)
+                }
+                Message::XRes(v) => {
+                    self.pay_page.processing_x_data_res(v.data)
+                }
+                Message::IPRes(v) => {
+                   self.pay_page.processing_ip_data_res(v.data)
+                }
+                Message::TGRes(v)=>{}
+                _ => {}
+            }
+        }
+
     }
 }
 
 impl eframe::App for LumaoApp {
     fn update(&mut self, ctx: &Context, frame: &mut Frame) {
-        ctx.set_visuals(egui::Visuals::dark());
-        egui::CentralPanel::default().show(ctx,|ui|{
-           self.main_ui(ui)
-        });
-        egui_extras::install_image_loaders(ctx);
+        self.processing_data_res();
+        self.main_ui(ctx,frame);
         ctx.request_repaint_after(Duration::from_millis(100))
     }
 }

@@ -35,4 +35,7 @@ impl Mail{
     pub fn show(&mut self,ctx:&Context){
 
     }
+    pub fn processing_data_res(&mut self,data:Vec<MailInfo>){
+        self.data = data
+    }
 }

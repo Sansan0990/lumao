@@ -1,4 +1,4 @@
-use crate::pay_page::{DC, Ip, Mail, TG, X};
+use crate::pay::{discord::DC, ip::Ip, mail::Mail, telegram::TG, x::X};
 
 #[derive(Clone, Debug)]
 pub enum Message{
